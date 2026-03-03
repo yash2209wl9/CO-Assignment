@@ -9,15 +9,17 @@ def Instructiontype(a):
     R_IN =["add", "sub", "sll", "slt", "sltu", "xor", "srl", "or", "and"]
     IandS_IN = ["addi", "lw", "sltiu", "jalr", "sw"]
     UandJ_IN = ["lui", "auipc", "jal"]
-    B_IN = ["beq", "bne", "blt", "bgt", "bltu", "bgtu"]
-    for a in R_IN:
+    B_IN = ["beq", "bne", "blt", "bge", "bltu", "bgeu"]
+    if a in R_IN:
         return "R"
-    for a in IandS_IN:
+    elif a in IandS_IN:
         return "I"
-    for a in UandJ_IN:
+    elif a in UandJ_IN:
         return "U"
-    for a in B_IN:
+    elif a in B_IN:
         return "B"
+    else:
+        return None
 
 i_file = sys.argv[1]
 o_file = sys.argv[2]
@@ -27,6 +29,9 @@ count = 0
 output =  []
 for i in lines:
     count +=1
+    i = i.strip()
+        if i == "":
+            continue
     i = i.replace(","," ")
     pieces = i.split()
     CheckInstruction(pieces,count)
@@ -39,10 +44,15 @@ for i in lines:
         b = UandJ(pieces)
     elif type == "B":
         b = Btype(pieces)
+    else:
+        print("Error at line ")
+        print(count)
+        exit()
 
     output.append(b)
-    g = open(o_file, 'w')
-    for i in output:
-        g.write(i)
-        g.write("\n")
-    g.close()
+g = open(o_file, 'w')
+for i in output:
+    g.write(i)
+    g.write("\n")
+g.close()
+f.close()
