@@ -1,0 +1,2 @@
+def IandS(pieces):
+    pass

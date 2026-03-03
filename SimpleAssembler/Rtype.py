@@ -1,0 +1,2 @@
+def Rtype(pieces):
+    pass
