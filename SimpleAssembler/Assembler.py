@@ -30,8 +30,8 @@ output =  []
 for i in lines:
     count +=1
     i = i.strip()
-        if i == "":
-            continue
+    if i == "":
+        continue
     i = i.replace(","," ")
     pieces = i.split()
     CheckInstruction(pieces,count)
