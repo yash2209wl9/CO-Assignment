@@ -21,35 +21,85 @@ def Instructiontype(a):
     else:
         return None
 
+
+
+
+label = {}
 i_file = sys.argv[1]
 o_file = sys.argv[2]
 f = open(i_file, 'r')
 lines = f.readlines()
 count = 0
 output =  []
+pc = 0
+for i in lines: #loop for collecting label
+    i = i.strip()
+    if i == "":
+        continue
+    parts = i.replace(","," ").split()
+    if ":" in parts[0]:
+        if len(parts) == 1:
+            label[parts[0].replace(":","")] = pc
+        else :
+            label[parts[0].replace(":","")] = pc
+            pc = pc+4
+    else:
+        pc = pc+4
+
+    
+
+
+curr_pc = 0
 for i in lines:
     count +=1
     i = i.strip()
-        if i == "":
-            continue
+    if i == "": #for blank lines
+        continue
+    
     i = i.replace(","," ")
     pieces = i.split()
-    CheckInstruction(pieces,count)
-    type = Instructiontype(pieces[0])
-    if type == "R":
+    if ":" in pieces[0]:# for label lines
+        if len(pieces) == 1:
+            continue
+        else:
+            pieces.pop(0)
+            
+    CheckInstruction(pieces,count,label)
+    I_type = Instructiontype(pieces[0])
+    if I_type == "R":
         b = Rtype(pieces)
-    elif type == "I":
+        
+    elif I_type == "I":
+        
+        if pieces[0] == "lw" or pieces[0] == "sw":
+            x = pieces[2].replace("("," ")
+            temp = x.replace(")"," ").split()
+            pieces[2] = temp[1]
+            pieces[3] = temp[0]
+            
         b = IandS(pieces)
-    elif type == "U":
+
+        
+    elif I_type == "U":
+        if pieces[0] == "jal":
+            offset = label[pieces[2]] - curr_pc
+            pieces[2] = str(offset)
         b = UandJ(pieces)
-    elif type == "B":
+
+            
+    elif I_type == "B":
+        offset = label[pieces[3]] - curr_pc
+        pieces[3] = str(offset)
         b = Btype(pieces)
+
+        
     else:
         print("Error at line ")
         print(count)
         exit()
 
     output.append(b)
+    curr_pc+=4
 g = open(o_file, 'w')
 for i in output:
     g.write(i)
