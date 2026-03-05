@@ -32,7 +32,7 @@ lines = f.readlines()
 count = 0
 output =  []
 pc = 0
-for i in lines:
+for i in lines: #loop for collecting label
     i = i.strip()
     if i == "":
         continue
@@ -45,14 +45,6 @@ for i in lines:
             pc = pc+4
     else:
         pc = pc+4
-    
-            
-            
-        
-    
-    
-
-
 
     
 
@@ -61,12 +53,12 @@ curr_pc = 0
 for i in lines:
     count +=1
     i = i.strip()
-    if i == "":
+    if i == "": #for blank lines
         continue
     
     i = i.replace(","," ")
     pieces = i.split()
-    if ":" in pieces[0]:
+    if ":" in pieces[0]:# for label lines
         if len(pieces) == 1:
             continue
         else:
@@ -76,18 +68,30 @@ for i in lines:
     I_type = Instructiontype(pieces[0])
     if I_type == "R":
         b = Rtype(pieces)
+        
     elif I_type == "I":
+        
+        if pieces[0] == "lw" or pieces[0] == "sw":
+            x = pieces[2].replace("("," ")
+            temp = x.replace(")"," ").split()
+            pieces[2] = temp[1]
+            pieces[3] = temp[0]
+            
         b = IandS(pieces)
+
+        
     elif I_type == "U":
         if pieces[0] == "jal":
             offset = label[pieces[2]] - curr_pc
             pieces[2] = str(offset)
         b = UandJ(pieces)
+
             
     elif I_type == "B":
         offset = label[pieces[3]] - curr_pc
         pieces[3] = str(offset)
         b = Btype(pieces)
+
         
     else:
         print("Error at line ")
