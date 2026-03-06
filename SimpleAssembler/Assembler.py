@@ -74,8 +74,7 @@ for i in lines:
         if pieces[0] == "lw" or pieces[0] == "sw":
             x = pieces[2].replace("("," ")
             temp = x.replace(")"," ").split()
-            pieces[2] = temp[1]
-            pieces[3] = temp[0]
+            pieces = [pieces[0],pieces[1],temp[1],temp[0]]
             
         b = IandS(pieces)
 
