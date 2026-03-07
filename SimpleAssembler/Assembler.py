@@ -47,8 +47,8 @@ for i in lines: #loop for collecting label
         pc = pc+4
 
     
-
-
+last_line = None #initialize variable to get last line
+vhault = 0 #counting how many virtual halts
 curr_pc = 0
 for i in lines:
     count +=1
@@ -63,7 +63,16 @@ for i in lines:
             continue
         else:
             pieces.pop(0)
+
+#for counting vhault---------
+    if pieces:    
+        last_line = pieces.copy()
+    if len(pieces) == 4:
+        if pieces[0] == "beq" and pieces[1] == "zero" and pieces[2] == "zero" and pieces[3] == "0":
+            vhault += 1
             
+#----------------
+   
     CheckInstruction(pieces,count,label)
     I_type = Instructiontype(pieces[0])
     if I_type == "R":
@@ -97,8 +106,26 @@ for i in lines:
         print(count)
         exit()
 
+
     output.append(b)
     curr_pc+=4
+
+#vhault checking-----------------
+if vhault == 0:
+    print("Error: missing virtual halt")
+    exit()
+if vhault == 1:
+    if len(last_line) != 4:
+        print("Error: virtual halt not at the last line")
+        exit()
+    if not (last_line[0] == "beq" and last_line[1] == "zero" and last_line[2] == "zero" and last_line[3] == "0"):
+            print("Error: virtual halt not at the last line")
+            exit()
+if vhault >1:
+    print("Error: multiple virtual halt")
+    exit()
+#-------------------    
+        
 g = open(o_file, 'w')
 for i in output:
     g.write(i)
