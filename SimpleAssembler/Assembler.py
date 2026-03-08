@@ -73,7 +73,11 @@ for i in lines:
             
 #----------------
    
-    CheckInstruction(pieces,count,label)
+    err = CheckInstruction(pieces,count,label)
+    if err:
+        print(err)
+        exit()
+        
     I_type = Instructiontype(pieces[0])
     if I_type == "R":
         b = Rtype(pieces)
