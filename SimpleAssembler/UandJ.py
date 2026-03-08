@@ -15,7 +15,7 @@ opcode_table = {
 def integer_to_binary(val,bits):
     val = int(val)
     if(val < 0):
-        val = 2**bits + val,
+        val = 2**bits + val
     return format(val,'0{}b'.format(bits))
 
 def UandJ(pieces):
@@ -32,11 +32,11 @@ def UandJ(pieces):
     else:
         binary_imm_j = integer_to_binary(imm,21)
         imm20 = binary_imm_j[0]
-        imm10to1 = binary_imm_j[10:20]
-        imm11 = binary_imm_j[9]
-        imm19to21 = binary_imm_j[1:9]
+        imm10_1 = binary_imm_j[11:21]
+        imm11 = binary_imm_j[10]
+        imm19_12 = binary_imm_j[1:9]
 
-        binary = imm20 + imm10to1 + imm11 + imm19to21 + binary_rd + opcode
+        binary = imm20 + imm10_1 + imm11 + imm19_12 + binary_rd + opcode
         return binary
     
 

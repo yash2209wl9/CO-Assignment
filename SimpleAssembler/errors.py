@@ -31,7 +31,7 @@ def checkval(val,bits):
     maxval = 2**(bits-1)-1
     
     if val < minval or val > maxval:
-        return "false"
+        return False
     else:
         return val
 
@@ -135,12 +135,6 @@ def CheckInstruction(pieces,line_number,dict_label):
     return None 
     
     
-
-
-
-
-
-
 
 
 
