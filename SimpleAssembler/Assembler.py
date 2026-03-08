@@ -100,7 +100,11 @@ for i in lines:
 
             
     elif I_type == "B":
-        offset = label[pieces[3]] - curr_pc
+        target = pieces[3]
+        if target in label:
+            offset = label[target] - curr_pc
+        else:
+            offset = int(target)
         pieces[3] = str(offset)
         b = Btype(pieces)
 

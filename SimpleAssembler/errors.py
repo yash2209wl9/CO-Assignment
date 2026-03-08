@@ -33,7 +33,7 @@ def checkval(val,bits):
     if val < minval or val > maxval:
         return False
     else:
-        return val
+        return True
 
 def CheckInstruction(pieces,line_number,dict_label):
 
@@ -108,7 +108,10 @@ def CheckInstruction(pieces,line_number,dict_label):
         if rs1 not in register_dict or rs2 not in register_dict:
             return f"invalid register at {line_number}"
         if label not in dict_label:
-            return f"undefined label at {line_number}"
+            try:
+                int(label)
+            except:
+                return f"undefined label at {line_number}"
         
     elif instruction in U_type:
         if len(pieces)!= 3:
