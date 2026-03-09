@@ -53,7 +53,7 @@ def Rtype(pieces, line_num):
     for r in [rd, rs1, rs2]:
         validate_reg(r, line_num)
     f7, f3 = function_table[inst]
-    return f7 + registers[rs2] + registers[rs1] + f3 + registers[rd] + "0110011"
+    return f7 + registers[rs2] + registers[rs1] + f3 + registers[rd] + "0110011"#binary format
 
 def Btype(pieces, line_num):
     funct3_dict = {"beq":"000","bne":"001","blt":"100","bge":"101","bltu":"110","bgeu":"111"}
@@ -102,11 +102,11 @@ for line in lines:#for labels
         label[parts[0].split(":")[0]] = pc
         if len(parts) > 1:
             pc += 4
-    else:
-        pc += 4
+    else
+        pc += 4 #calculating pc for labels
 
 output = []
-curr_pc = 0
+curr_pc = 0 #to cal offset
 vhault_found = False
 
 for idx, line in enumerate(lines, 1):#encoding
@@ -119,7 +119,7 @@ for idx, line in enumerate(lines, 1):#encoding
     inst = pieces[0]
     itype = Instructiontype(inst)
     
-    if itype == "R": b = Rtype(pieces, idx)
+    if itype == "R": b = Rtype(pieces, idx)#rtype
     elif itype in ["I","S"]:
         if inst in ["lw","sw"]:
             try:
@@ -137,7 +137,7 @@ for idx, line in enumerate(lines, 1):#encoding
     elif itype == "J":
         target = pieces[2]
         off = label[target] - curr_pc if target in label else int(target)#cal offset
-        pieces[2] = str(off)
+        pieces[2] = str(off) 
         b = UandJ(pieces, idx)
     elif itype == "U": b = UandJ(pieces, idx)
     else:
