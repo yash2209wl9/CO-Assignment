@@ -93,6 +93,7 @@ def main():
     pc = 0
     data_mem=[0] * DATA_MEM_WORDS
     output_lines=[]
+    regs[2] = 380
 
     def write_state():
         parts = [to_bin(pc)] + [to_bin(r) for r in regs]
@@ -236,8 +237,8 @@ def main():
         # =========B-Type=========
         elif opcode == "1100011":
             imm = imm_B(b)
-            a = u32(regs[rs1])
-            b_ = u32(regs[rs2])
+            a = s32(regs[rs1])
+            b_ = s32(regs[rs2])
             ua = u32(regs[rs1])
             ub = u32(regs[rs2])
 
