@@ -232,6 +232,28 @@ def main():
             addr = u32(regs[rs1] + imm_S(b))
             mem_write(addr, regs[rs2])
 
+
+        # =========B-Type=========
+        elif opcode == "1100011":
+            imm = imm_B(b)
+            a = u32(regs[rs1])
+            b_ = u32(regs[rs2])
+            ua = u32(regs[rs1])
+            ub = u32(regs[rs2])
+
+            if   funct3 == "000": taken = (a == b_)
+            elif funct3 == "001": taken = (a != b_)
+            elif funct3 == "100": taken = (a < b_)
+            elif funct3 == "101": taken = (a >= b_)
+            elif funct3 == "110": taken = (ua < ub)
+            elif funct3 == "111": taken = (ua >= ub)
+            else:
+                print(f"Error: Unknown branch funct3={funct3} at line {idx+1}")
+                flush_and_exit()
+
+            if taken:
+                next_pc = pc + imm
+
         # =========U-Type===========
 
         # ========LUI===========
