@@ -91,6 +91,7 @@ def main():
     #initial state(will add more)
     regs= [0 for i in range(32)]
     pc = 0
+    data_mem=[0] * DATA_MEM_WORDS
     output_lines=[]
 
     def write_state():
@@ -138,7 +139,7 @@ def main():
             print(f"Error: Memory write out of range: 0x{addr:08x} (PC=0x{pc:08x})")
             flush_and_exit()
 
-        data_mem[idx] = to_unsigned32(val)
+        data_mem[idx] = u32(val)
 
     infinite = 1_000_000                 
     for step in range(infinite):
@@ -149,22 +150,22 @@ def main():
 
         b = instr_mem[idx]
         opcode, rd, funct3, rs1, rs2, funct7 = decode_fields(b)
-        nextPc= pc + 4
+        next_pc= pc + 4
 
         if vhalt(b):
             regs[0]= 0
             write_state()
             for i in range(DATA_MEM_DUMP_WORDS):
                 addr = DATA_MEM_DISPLAY_BASE + i * 4
-                output_lines.append(f"0x{addr:08X}:{to_bin32(data_mem[i])}")
+                output_lines.append(f"0x{addr:08X}:{to_bin(data_mem[i])}")
             break
 
         # =========R-Type===============
         elif opcode == "0110011":
-            a = to_signed32(regs[rs1])
-            b_ = to_signed32(regs[rs2])
-            ua = to_unsigned32(regs[rs1])
-            ub = to_unsigned32(regs[rs2])
+            a = s32(regs[rs1])
+            b_ = s32(regs[rs2])
+            ua = u32(regs[rs1])
+            ub = u32(regs[rs2])
             shft = ub & 0x1F
 
             if   funct3 == "000" and funct7 == "0000000": result = a + b_
@@ -182,21 +183,21 @@ def main():
                 flush_and_exit()
 
             if rd != 0:
-                regs[rd] = to_unsigned32(result)
+                regs[rd] = u32(result)
 
         # =========I-Type=========
         elif opcode == "0010011":
             imm = imm_I(b)
-            a = to_signed32(regs[rs1])
-            ua = to_unsigned32(regs[rs1])
+            a = s32(regs[rs1])
+            ua = u32(regs[rs1])
             shft = imm & 0x1F
 
             if   funct3 == "000": result = a + imm
             elif funct3 == "010": result = 1 if a < imm else 0
-            elif funct3 == "011": result = 1 if ua < to_unsigned32(imm) else 0
-            elif funct3 == "100": result = ua ^ to_unsigned32(imm)
-            elif funct3 == "110": result = ua | to_unsigned32(imm)
-            elif funct3 == "111": result = ua & to_unsigned32(imm)
+            elif funct3 == "011": result = 1 if ua < u32(imm) else 0
+            elif funct3 == "100": result = ua ^ u32(imm)
+            elif funct3 == "110": result = ua | u32(imm)
+            elif funct3 == "111": result = ua & u32(imm)
             elif funct3 == "001": result = ua << shft
             elif funct3 == "101":
                 if funct7 == "0000000":
@@ -211,14 +212,14 @@ def main():
                 flush_and_exit()
 
             if rd != 0:
-                regs[rd] = to_unsigned32(result)
+                regs[rd] = u32(result)
 
         # =========Load word===============
         elif opcode == "0000011":
             if funct3 != "010":
                 print(f"Error: Unsupported load funct3={funct3} at line {idx+1}")
                 flush_and_exit()
-            addr = to_unsigned32(regs[rs1] + imm_I(b))
+            addr = u32(regs[rs1] + imm_I(b))
             val = mem_read(addr)
             if rd != 0:
                 regs[rd] = val
@@ -228,7 +229,7 @@ def main():
             if funct3 != "010":
                 print(f"Error: Unsupported store funct3={funct3} at line {idx+1}")
                 flush_and_exit()
-            addr = to_unsigned32(regs[rs1] + imm_S(b))
+            addr = u32(regs[rs1] + imm_S(b))
             mem_write(addr, regs[rs2])
 
         # =========U-Type===========
@@ -236,12 +237,12 @@ def main():
         # ========LUI===========
         elif opcode == "0110111":
             if rd != 0:
-                regs[rd] = to_unsigned32(imm_U(b))
+                regs[rd] = u32(imm_U(b))
 
         # =========AUIPC===========
         elif opcode == "0010111":
             if rd != 0:
-                regs[rd] = to_unsigned32(pc + imm_U(b))
+                regs[rd] = u32(pc + imm_U(b))
         
 
         #=============J-Type================
@@ -251,14 +252,14 @@ def main():
             link = pc + 4
             next_pc = pc + imm_J(b)
             if rd != 0:
-                regs[rd] = to_unsigned32(link)
+                regs[rd] = u32(link)
 
         # =========JALR===========
         elif opcode == "1100111":
             link = pc + 4
-            next_pc = to_unsigned32((regs[rs1] + imm_I(b)) & ~1)
+            next_pc = u32((regs[rs1] + imm_I(b)) & ~1)
             if rd != 0:
-                regs[rd] = to_unsigned32(link)
+                regs[rd] = u32(link)
         else:
             print(f"Error: Unknown opcode '{opcode}' at line {idx+1}")
             flush_and_exit()
@@ -267,14 +268,14 @@ def main():
         pc = next_pc
         write_state()
 
-else:
+    else:
         print("Error: Exceeded maximum step limit — possible infinite loop")
         flush_and_exit()
         
     out_dir = os.path.dirname(output_path)          
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
-
+        
     with open(output_path, 'w') as f:      
         f.write('\n'.join(output_lines) + '\n')
 
