@@ -159,4 +159,112 @@ def main():
                 output_lines.append(f"0x{addr:08X}:{to_bin32(data_mem[i])}")
             break
 
+        # =========R-Type===============
+        elif opcode == "0110011":
+            a = to_signed32(regs[rs1])
+            b_ = to_signed32(regs[rs2])
+            ua = to_unsigned32(regs[rs1])
+            ub = to_unsigned32(regs[rs2])
+            shft = ub & 0x1F
+
+            if   funct3 == "000" and funct7 == "0000000": result = a + b_
+            elif funct3 == "000" and funct7 == "0100000": result = a - b_
+            elif funct3 == "001" and funct7 == "0000000": result = ua << shft
+            elif funct3 == "010" and funct7 == "0000000": result = 1 if a < b_ else 0
+            elif funct3 == "011" and funct7 == "0000000": result = 1 if ua < ub else 0
+            elif funct3 == "100" and funct7 == "0000000": result = ua ^ ub
+            elif funct3 == "101" and funct7 == "0000000": result = ua >> shft
+            elif funct3 == "101" and funct7 == "0100000": result = a >> shft
+            elif funct3 == "110" and funct7 == "0000000": result = ua | ub
+            elif funct3 == "111" and funct7 == "0000000": result = ua & ub
+            else:
+                print(f"Error: Unknown R-type funct3={funct3} funct7={funct7} at line {idx+1}")
+                flush_and_exit()
+
+            if rd != 0:
+                regs[rd] = to_unsigned32(result)
+
+        # =========I-Type=========
+        elif opcode == "0010011":
+            imm = imm_I(b)
+            a = to_signed32(regs[rs1])
+            ua = to_unsigned32(regs[rs1])
+            shft = imm & 0x1F
+
+            if   funct3 == "000": result = a + imm
+            elif funct3 == "010": result = 1 if a < imm else 0
+            elif funct3 == "011": result = 1 if ua < to_unsigned32(imm) else 0
+            elif funct3 == "100": result = ua ^ to_unsigned32(imm)
+            elif funct3 == "110": result = ua | to_unsigned32(imm)
+            elif funct3 == "111": result = ua & to_unsigned32(imm)
+            elif funct3 == "001": result = ua << shft
+            elif funct3 == "101":
+                if funct7 == "0000000":
+                    result = ua >> shft
+                elif funct7 == "0100000":
+                    result = a >> shft
+                else:
+                    print(f"Error: Unknown I-shift funct7={funct7} at line {idx+1}")
+                    flush_and_exit()
+            else:
+                print(f"Error: Unknown I-ALU funct3={funct3} at line {idx+1}")
+                flush_and_exit()
+
+            if rd != 0:
+                regs[rd] = to_unsigned32(result)
+
+        # =========Load word===============
+        elif opcode == "0000011":
+            if funct3 != "010":
+                print(f"Error: Unsupported load funct3={funct3} at line {idx+1}")
+                flush_and_exit()
+            addr = to_unsigned32(regs[rs1] + imm_I(b))
+            val = mem_read(addr)
+            if rd != 0:
+                regs[rd] = val
+
+        # =========S-Type=========
+        elif opcode == "0100011":
+            if funct3 != "010":
+                print(f"Error: Unsupported store funct3={funct3} at line {idx+1}")
+                flush_and_exit()
+            addr = to_unsigned32(regs[rs1] + imm_S(b))
+            mem_write(addr, regs[rs2])
+
+        # =========U-Type===========
+
+        # ========LUI===========
+        elif opcode == "0110111":
+            if rd != 0:
+                regs[rd] = to_unsigned32(imm_U(b))
+
+        # =========AUIPC===========
+        elif opcode == "0010111":
+            if rd != 0:
+                regs[rd] = to_unsigned32(pc + imm_U(b))
+        
+
+        #=============J-Type================
+
+        # =========JAL===========
+        elif opcode == "1101111":
+            link = pc + 4
+            next_pc = pc + imm_J(b)
+            if rd != 0:
+                regs[rd] = to_unsigned32(link)
+
+        # =========JALR===========
+        elif opcode == "1100111":
+            link = pc + 4
+            next_pc = to_unsigned32((regs[rs1] + imm_I(b)) & ~1)
+            if rd != 0:
+                regs[rd] = to_unsigned32(link)
+        else:
+            print(f"Error: Unknown opcode '{opcode}' at line {idx+1}")
+            flush_and_exit()
+
+        regs[0] = 0
+        pc = next_pc
+        write_state()
+
 main()
