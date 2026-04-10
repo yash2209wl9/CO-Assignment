@@ -252,7 +252,7 @@ def main():
                 flush_and_exit()
 
             if taken:
-                next_pc = pc + imm
+                next_pc = pc + imm      
 
         # =========U-Type===========
 
