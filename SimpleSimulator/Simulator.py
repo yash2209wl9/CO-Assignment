@@ -58,8 +58,18 @@ def imm_J(b):
     raw = b[0] + b[12:20] + b[11] + b[1:11] + '0'
     return sign_extend(int(raw, 2), 21)
 
+def vhalt(b):
+    opcode, rd, funct3, rs1, rs2, funct7 = decode_fields(b)
+    if opcode != "1100011" or funct3 != "000":
+        return False
+    if rs1 != 0 or rs2 != 0:
+        return False
+    return imm_B(b) == 0
 
-#Main logic for the code
+
+DATA_MEM_DISPLAY_BASE = 0x00010000        
+DATA_MEM_WORDS = 4096                      
+
 
 def main():
     if len(sys.argv) < 3:
@@ -81,8 +91,38 @@ def main():
     #initial state(will add more)
     regs= [0 for i in range(32)]
     pc = 0
+    output_lines=[]
 
+    def write_state():
+        parts = [to_bin(pc)] + [to_bin(r) for r in regs]
+        output_lines.append(' '.join(parts))
 
-    # execution logic will be added here
+    def flush_and_exit():
+        out_dir = os.path.dirname(output_path)
+        if out_dir != "":
+            os.makedirs(out_dir, exist_ok=True)
+        with open(output_path, 'w') as f:
+            f.write('\n'.join(output_lines) + '\n')
+        sys.exit(1)     
+        
+
+    infinite = 1_000_000                 
+    for step in range(infinite):
+        idx = pc // 4
+        if not (0 <= idx < len(instr_mem)):
+            print("error: PC out of  instruction memory range ")
+            flush_and_exit()
+
+        b = instr_mem[idx]
+        opcode, rd, funct3, rs1, rs2, funct7 = decode_fields(b)
+        nextPc= pc + 4
+
+        if vhalt(b):
+            regs[0]= 0
+            write_state()
+            for i in range(DATA_MEM_DUMP_WORDS):
+                addr = DATA_MEM_DISPLAY_BASE + i * 4
+                output_lines.append(f"0x{addr:08X}:{to_bin32(data_mem[i])}")
+            break
 
 main()
