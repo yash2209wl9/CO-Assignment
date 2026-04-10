@@ -267,4 +267,21 @@ def main():
         pc = next_pc
         write_state()
 
-main()
+else:
+        print("Error: Exceeded maximum step limit — possible infinite loop")
+        flush_and_exit()
+        
+    out_dir = os.path.dirname(output_path)          
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+
+    with open(output_path, 'w') as f:      
+        f.write('\n'.join(output_lines) + '\n')
+
+    print(f"Simulation complete. Output written to '{output_path}'")
+
+
+if __name__ == "__main__":
+    main()
+
+
