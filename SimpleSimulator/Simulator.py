@@ -67,9 +67,9 @@ def vhalt(b):
     return imm_B(b) == 0
 
 
-DATA_MEM_DISPLAY_BASE = 0x00010000        
-DATA_MEM_WORDS = 4096                      
-
+DATA_MEM_DISPLAY_BASE = 0x00010000         # Base address for memory dump in output
+DATA_MEM_WORDS = 4096                      # Total words in data memory (16KB)
+DATA_MEM_DUMP_WORDS = 32                   # Number of words to dump from data memory at the end of simulation
 
 def main():
     if len(sys.argv) < 3:
@@ -103,8 +103,42 @@ def main():
             os.makedirs(out_dir, exist_ok=True)
         with open(output_path, 'w') as f:
             f.write('\n'.join(output_lines) + '\n')
-        sys.exit(1)     
-        
+        sys.exit(1) 
+
+    
+    def addr_to_index(addr):
+        if addr % 4 != 0:
+            return None
+
+        raw_idx = addr // 4
+        if 0 <= raw_idx < DATA_MEM_WORDS:
+            return raw_idx
+
+        if addr >= DATA_MEM_DISPLAY_BASE:
+            base_idx = (addr - DATA_MEM_DISPLAY_BASE) // 4
+            if 0 <= base_idx < DATA_MEM_WORDS:
+                return base_idx
+
+        return None
+
+    def mem_read(addr):
+        idx = addr_to_index(addr)
+        if idx is None:
+            print(f"Error: Memory read out of range: 0x{addr:08x} (PC=0x{pc:08x})")
+            flush_and_exit()
+        return data_mem[idx]
+
+    def mem_write(addr, val):
+        if addr % 4 != 0:
+            print(f"Error: Unaligned memory write at 0x{addr:08x} (PC=0x{pc:08x})")
+            flush_and_exit()
+
+        idx = addr_to_index(addr)
+        if idx is None:
+            print(f"Error: Memory write out of range: 0x{addr:08x} (PC=0x{pc:08x})")
+            flush_and_exit()
+
+        data_mem[idx] = to_unsigned32(val)
 
     infinite = 1_000_000                 
     for step in range(infinite):
